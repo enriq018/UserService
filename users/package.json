@@ -4,7 +4,7 @@
   "description": "userDatabase ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node ./node_modules/mocha/bin/mocha",
     "server-dev": "nodemon server/index.js"
   },
   "repository": {
@@ -14,12 +14,21 @@
   "author": "javi",
   "license": "ISC",
   "dependencies": {
+    "artillery": "^1.6.0-12",
     "bluebird": "^3.5.1",
+    "body-parser": "^1.18.2",
+    "chai": "^4.1.2",
+    "easy-sqs": "^0.5.3",
     "express": "^4.16.2",
     "faker": "^4.1.0",
     "mariasql": "^0.2.6",
     "mariasql-promise": "^2.0.0",
+    "mocha": "^4.0.1",
     "mysql": "^2.15.0",
-    "nodemon": "^1.12.1"
+    "nodemon": "^1.12.1",
+    "request": "^2.83.0",
+    "sqs": "^2.0.2",
+    "supertest": "^3.0.0",
+    "supertest-chai": "0.0.8"
   }
 }

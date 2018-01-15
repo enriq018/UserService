@@ -2,13 +2,12 @@
 const mariasql = require('mariasql');
 const fakeData = require('../server/fakeData.js');
 const MariaSQL = require('mariasql-promise');
+
 var getRandomInt = function(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 };
-
-
 // const Promise = require("bluebird");
 //create a connection to the database and pass in the correct information to sign in (unique per person)
 const connection = new mariasql({
@@ -62,12 +61,12 @@ const addUser = (userInfo, cb) => {
         const insertUserInfo = db.query(`INSERT INTO userInfo (userId, firstName, LastName, gender, email, phoneNumber,
           preferredLanguage, preferredCurrency, homeCity, photo) VALUES (${results.info.insertId}, '${userInfo.firstName}', '${userInfo.lastName}', '${userInfo.gender}', '${userInfo.email}', ${userInfo.phoneNumber}, 
           '${userInfo.preferredLanguage}','${userInfo.preferredCurrency}', '${userInfo.homeCity}', '${userInfo.photo}');`)
-          .then(function(data){
+          .then(function(data) {
             // console.log('!!!!!', data);
             const insertUserRecentSearch = db.query(`INSERT INTO recentLocations (userId, recent) VALUES (${results.info.insertId}, (''));`)
-              .then(function(next){
-                console.log(next.info.insertId);
-                cb()
+              .then(function(next) {
+                // console.log(next.info.insertId);
+                cb(next);
               });
           });
         // return results.info.insertId;
@@ -75,11 +74,25 @@ const addUser = (userInfo, cb) => {
 
     return Promise.all([insertNewUser]);
   }).catch(function(e) {
-    console.log('We have a problem', e.message, e.stack)
+    console.log('We have a problem', e.message, e.stack);
   });
   
 };
 
+const addUserReview = (userId, reviewId, cb) => {
+  connect.then(function() {
+    const insertNewReview = db.query(`INSERT INTO userReviews (userId, reviewId) VALUES (${userId}, ${reviewId});`)
+      .then(function(results) {
+        console.log('added user review:', userId, reviewId);
+        cb(userId);
+
+      });
+    return Promise.all([insertNewReview]);
+  }).catch(function(e) {
+    console.log('problemo', e.message, e.stack);
+  });
+
+};
 
 // const addUser = (userInfo, cb) => {
 //   // userInfo.phoneNumber = userInfo.phoneNumber.split('-').join('');
@@ -162,17 +175,16 @@ const updateRecentSearch = function (id, locationId, cb) {
   var queryString = 'USE userService;';
   connection.query(queryString, (err, results, fields) => {
     if (err) {
-      console.log('err', err);
+      // console.log('err', err);
     } else {
-      console.log('pre',results);
-            var queryString = `SELECT * from recentLocations WHERE userId = ${id}`;
-
+      // console.log('pre', results);
+      var queryString = `SELECT * from recentLocations WHERE userId = ${id}`;
       // var queryString = `SELECT * from recentLocations WHERE userId = 2003;`;
       connection.query(queryString, (err, results, fields) => {
         if (err) {
-          console.log('err2', err);
+          // console.log('err2', err);
         } else {
-          console.log('!!!', results)
+          // console.log('!!!', results);
           var recent = results[0].recent;
           // console.log('id#:',id, 'string:', recent);
           //////////////////////////////////////////////////////////
@@ -194,9 +206,9 @@ const updateRecentSearch = function (id, locationId, cb) {
                 var queryString = `UPDATE recentLocations SET recent = "${recent}" WHERE userId = ${id};`;
                 connection.query(queryString, (err, results, fields) => {
                   if (err) { 
-                    console.log('err more than 5 no repeat', err)
+                    // console.log('err more than 5 no repeat', err);
                   } else {
-                    console.log('at max 5, no repeat', recent)
+                    // console.log('at max 5, no repeat', recent);
                     cb();
                   }
                 });
@@ -205,17 +217,17 @@ const updateRecentSearch = function (id, locationId, cb) {
                 var queryString = `UPDATE recentLocations SET recent = "${recent}" WHERE userId = ${id};`;
                 connection.query(queryString, (err, results, fields) => {
                   if (err) { 
-                    console.log('err less than 5 recents', err)
+                    // console.log('err less than 5 recents', err);
                   } else {
-                    console.log('less than 5', recent)
+                    // console.log('less than 5', recent);
                     cb();
                   }
                 });
               }
             } else {
-              console.log('repeat/move to front');
-              if (recent.length === 1){
-                console.log('only one thing, we good');
+              // console.log('repeat/move to front');
+              if (recent.length === 1) {
+                // console.log('only one thing, we good');
 
                 cb();
               } else {
@@ -225,23 +237,23 @@ const updateRecentSearch = function (id, locationId, cb) {
                 var queryString = `UPDATE recentLocations SET recent = "${recent}" WHERE userId = ${id};`;
                 connection.query(queryString, (err, results, fields) => {
                   if (err) { 
-                    console.log('err less than 5 recents', err)
+                    // console.log('err less than 5 recents', err);
                   } else {
-                    console.log('moved to front & below max', recent)
-                    cb()
+                    // console.log('moved to front & below max', recent);
+                    cb();
                   }
                 });
               }
             } 
           } else {
             //"location"
-            console.log('first time adding something to recents');
+            // console.log('first time adding something to recents');
             var queryString = `UPDATE recentLocations SET recent = "${locationId}" WHERE userId = ${id};`;
             connection.query(queryString, (err, results, fields) => {
               if (err) {
-                console.log('err4', err)
+                // console.log('err4', err);
               } else {
-                cb()
+                cb();
               }
             });
           }
@@ -251,18 +263,16 @@ const updateRecentSearch = function (id, locationId, cb) {
   });
 };
 
-
-
 const userRecentSearch = function(id, cb) {
   var queryString = 'USE userService;';
   connection.query(queryString, (err, results, fields) => {
     if (err) {
-      console.log('err');
+      // console.log('err');
     } else {
-      var queryString = `SELECT * from recentLocations WHERE userId = ${id}`;
+      var queryString = `SELECT * from recentLocations WHERE id = ${id}`;
       connection.query(queryString, (err, results, fields) => {
         var locationArray = results[0].recent.split(',').map(el => parseInt(el));
-        console.log(locationArray)
+        // console.log('db userRecentSearch results: ', locationArray);
         cb(locationArray);
       });
     }
@@ -336,24 +346,25 @@ const userRecentSearch = function(id, cb) {
 //     }
 //   });
 // };
-console.log('starting...')
+console.log('starting...');
 var dbLoadUsers = () => {
-  console.log('inside!')
+  console.log('inside!');
   for (var i = 0; i < 10000; i++) {
     // console.log(i)
     var randomObj = {firstName: fakeData.names[getRandomInt(0, 50)], lastName: fakeData.names[getRandomInt(0, 50)], gender: fakeData.gender[getRandomInt(0, 3)], email: fakeData.email[getRandomInt(0, 50)], phoneNumber: fakeData.phoneNumber[getRandomInt(0, 9)], 
       preferredLanguage: 'english', preferredCurrency: 'USD', homeCity: fakeData.city[getRandomInt(0, 50)], photo: ' http://lorempixel.com/640/480'};
-    addUser(randomObj, () => {console.log('')});
+    addUser(randomObj, () => { console.log(''); });
   }
 };
-
+//to pop database manually 
 // dbLoadUsers();
 
 module.exports = {
   addUser: addUser,
   updateSearchHistory: updateSearchHistory,
   updateRecentSearch: updateRecentSearch,
-  userRecentSearch: userRecentSearch
+  userRecentSearch: userRecentSearch,
+  addUserReview: addUserReview
 };
 
 // INSERT into savedLocations (userId, locationId, locationCity) VALUES (3000,111,'oside');
